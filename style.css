@@ -1,0 +1,99 @@
+/* Reset simple */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 1rem 2rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.logo {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: #333;
+  padding: 0.5rem 1rem;
+  transition: background 0.3s;
+}
+
+/* Boutons */
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.btn:hover {
+  background: #d1d1d1;
+}
+
+.btn.black {
+  background: #000;
+  color: #fff;
+}
+
+.btn.black:hover {
+  background: #333;
+}
+
+/* Hero Section */
+.hero {
+  height: calc(100vh - 66px);
+  background: url("images/bg-home.png") center/cover no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.hero-content {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 600px;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
