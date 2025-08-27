@@ -32,22 +32,34 @@ let brushSize = 8;
 let brushColor = "#000000";
 let mode = "brush"; // brush | bucket | eraser
 
-// ---------- Pokémon + titre ----------
-const params = new URLSearchParams(location.search);
-const pokemonFromUrl = params.get("p");
-const turnFromUrl = params.get("turn"); // "1" si c'est le tour du joueur
+// ---------- Pokémon + titre (tirage aléatoire) ----------
+async function getRandomPokemon() {
+  const max = 898; // nombre total de Pokémon (générations 1 → 8)
+  const randomId = Math.floor(Math.random() * max) + 1;
+  const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
+  const data = await res.json();
+  return data.name;
+}
 
-let pokemonName = (pokemonFromUrl || localStorage.getItem("pokemon") || "pikachu").toLowerCase();
-let isTurn = (turnFromUrl === "1") || (localStorage.getItem("isTurn") === "true");
+async function initPokemon() {
+  let pokemonName = localStorage.getItem("pokemon");
 
-// On sauvegarde ce qui est passé par l'URL pour l'utiliser sur drawFinish
-localStorage.setItem("pokemon", pokemonName);
-localStorage.setItem("isTurn", isTurn ? "true" : "false");
+  // si aucun Pokémon stocké → on en tire un nouveau
+  if (!pokemonName) {
+    pokemonName = await getRandomPokemon();
+    localStorage.setItem("pokemon", pokemonName);
+  }
 
-// titre
-titleEl.textContent = isTurn
-  ? `Draw ${capitalize(pokemonName)}`
-  : `Waiting… ${capitalize(pokemonName)}`;
+  const isTurn = true; // si tu gères plusieurs joueurs, adapte ici
+  localStorage.setItem("isTurn", isTurn ? "true" : "false");
+
+  // affichage du titre
+  titleEl.textContent = isTurn
+    ? `Draw ${capitalize(pokemonName)}`
+    : `Waiting… ${capitalize(pokemonName)}`;
+}
+
+initPokemon();
 
 // ---------- palette couleurs ----------
 document.getElementById("palette").addEventListener("click", (e) => {
@@ -104,7 +116,7 @@ canvas.addEventListener("mousedown", (e) => {
   const y = e.offsetY;
 
   if (mode === "bucket") {
-    // bucket simple: remplir tout le canvas (tu pourras remplacer par un flood-fill plus tard)
+    // bucket simple: remplir tout le canvas (à remplacer par un flood-fill si tu veux)
     const prev = ctx.fillStyle;
     ctx.fillStyle = brushColor;
     ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
@@ -125,8 +137,7 @@ canvas.addEventListener("mousemove", (e) => {
 
 canvas.addEventListener("mouseup", () => {
   drawing = false;
-  // très important pour éviter de relier le prochain clic au précédent
-  ctx.beginPath();
+  ctx.beginPath(); // très important pour éviter de relier le prochain clic au précédent
 });
 canvas.addEventListener("mouseleave", () => {
   drawing = false;
@@ -169,7 +180,7 @@ canvas.addEventListener("touchend", () => {
   ctx.beginPath();
 });
 
-// cœur du tracé
+// ---------- cœur du tracé ----------
 function drawTo(x, y, start = false) {
   ctx.lineWidth = brushSize;
   ctx.lineCap = "round";
@@ -196,7 +207,7 @@ function drawTo(x, y, start = false) {
 }
 
 // ---------- timer ----------
-let timeLeft = 60; // ajuste si besoin
+let timeLeft = 60; // durée du round (secondes)
 const timer = setInterval(() => {
   timeLeft--;
   timeEl.textContent = timeLeft;
@@ -206,14 +217,12 @@ const timer = setInterval(() => {
   }
 }, 1000);
 
-// Fin du round
+// ---------- Fin du round ----------
 function finishRound() {
   // sauvegarder le dessin en base64
-  const dpr = window.devicePixelRatio || 1;
-  // pour toDataURL correct, on doit l'appliquer sur le canvas interne
-  // mais on a déjà dessiné en coordonnées CSS (grâce au scale), donc OK
   const drawingData = canvas.toDataURL("image/png");
   localStorage.setItem("lastDrawing", drawingData);
-  // on garde pokemonName déjà mis en LS plus haut
+
+  // on redirige vers la page de résultats
   window.location.href = "drawFinish.html";
 }

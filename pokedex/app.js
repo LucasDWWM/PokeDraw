@@ -12,21 +12,19 @@ const pokeListItems = document.querySelectorAll('.list-item');
 const leftButton = document.querySelector('.left-button');
 const rightButton = document.querySelector('.right-button');
 
-
 // constants and variables
 const TYPES = [
-  'normal', 'fighting', 'flying',
-  'poison', 'ground', 'rock',
-  'bug', 'ghost', 'steel',
-  'fire', 'water', 'grass',
-  'electric', 'psychic', 'ice',
-  'dragon', 'dark', 'fairy'
+  'normal', 'combat', 'vol',
+  'poison', 'sol', 'roche',
+  'insecte', 'spectre', 'acier',
+  'feu', 'eau', 'plante',
+  'électrique', 'psy', 'glace',
+  'dragon', 'ténèbre', 'fée'
 ];
 let prevUrl = null;
 let nextUrl = null;
 
-
-// Functions
+// Helpers
 const capitalize = (str) => str[0].toUpperCase() + str.substr(1);
 
 const resetScreen = () => {
@@ -36,6 +34,7 @@ const resetScreen = () => {
   }
 };
 
+// Fetch list of Pokémon (Tyradex supports offset & limit)
 const fetchPokeList = url => {
   fetch(url)
     .then(res => res.json())
@@ -44,15 +43,13 @@ const fetchPokeList = url => {
       prevUrl = previous;
       nextUrl = next;
 
-      for (let i = 0; i < pokeListItems.length ; i++) {
+      for (let i = 0; i < pokeListItems.length; i++) {
         const pokeListItem = pokeListItems[i];
         const resultData = results[i];
 
         if (resultData) {
-          const { name, url } = resultData;
-          const urlArray = url.split('/');
-          const id = urlArray[urlArray.length - 2];
-          pokeListItem.textContent = id + '. ' + capitalize(name);
+          const { id, name } = resultData;
+          pokeListItem.textContent = `${id}. ${capitalize(name.fr || name.en)}`;
         } else {
           pokeListItem.textContent = '';
         }
@@ -60,64 +57,59 @@ const fetchPokeList = url => {
     });
 };
 
+// Fetch Pokémon data
 const fetchPokeData = id => {
-  fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
+  fetch(`https://tyradex.vercel.app/pokemon/${id}`)
     .then(res => res.json())
     .then(data => {
       resetScreen();
 
-      const dataTypes = data['types'];
+      // Types
+      const dataTypes = data.types;
       const dataFirstType = dataTypes[0];
       const dataSecondType = dataTypes[1];
-      pokeTypeOne.textContent = capitalize(dataFirstType['type']['name']);
+      pokeTypeOne.textContent = capitalize(dataFirstType.type.name);
       if (dataSecondType) {
         pokeTypeTwo.classList.remove('hide');
-        pokeTypeTwo.textContent = capitalize(dataSecondType['type']['name']);
+        pokeTypeTwo.textContent = capitalize(dataSecondType.type.name);
       } else {
         pokeTypeTwo.classList.add('hide');
         pokeTypeTwo.textContent = '';
       }
-      mainScreen.classList.add(dataFirstType['type']['name']);
+      mainScreen.classList.add(dataFirstType.type.name);
 
-      pokeName.textContent = capitalize(data['name']);
-      pokeId.textContent = '#' + data['id'].toString().padStart(3, '0');
-      pokeWeight.textContent = data['weight'];
-      pokeHeight.textContent = data['height'];
-      pokeFrontImage.src = data['sprites']['front_default'] || '';
-      pokeBackImage.src = data['sprites']['back_default'] || '';
+      // Infos générales
+      pokeName.textContent = capitalize(data.name.fr || data.name.en);
+      pokeId.textContent = '#' + data.id.toString().padStart(3, '0');
+      pokeWeight.textContent = data.weight;
+      pokeHeight.textContent = data.height;
+      pokeFrontImage.src = data.sprites.front_default || '';
+      pokeBackImage.src = data.sprites.back_default || '';
+
+      // Affiche l'écran
+      mainScreen.classList.remove('hide');
     });
 };
 
-const handleLeftButtonClick = () => {
-  if (prevUrl) {
-    fetchPokeList(prevUrl);
-  }
-};
+// Boutons prev/next
+const handleLeftButtonClick = () => { if (prevUrl) fetchPokeList(prevUrl); };
+const handleRightButtonClick = () => { if (nextUrl) fetchPokeList(nextUrl); };
 
-const handleRightButtonClick = () => {
-  if (nextUrl) {
-    fetchPokeList(nextUrl);
-  }
-};
-
+// Liste de Pokémon clic
 const handleListItemClick = (e) => {
   if (!e.target) return;
-
   const listItem = e.target;
   if (!listItem.textContent) return;
-
   const id = listItem.textContent.split('.')[0];
   fetchPokeData(id);
 };
 
-
-// adding event listeners
+// Event listeners
 leftButton.addEventListener('click', handleLeftButtonClick);
 rightButton.addEventListener('click', handleRightButtonClick);
 for (const pokeListItem of pokeListItems) {
   pokeListItem.addEventListener('click', handleListItemClick);
 }
 
-
-// initialize App
-fetchPokeList('https://pokeapi.co/api/v2/pokemon?offset=0&limit=20');
+// Initialisation
+fetchPokeList('https://tyradex.vercel.app/pokemon?offset=0&limit=20');

@@ -31,5 +31,6 @@ if (lastDrawing) {
 // bouton next round
 document.getElementById("next-round-btn").addEventListener("click", () => {
   localStorage.removeItem("lastDrawing");
+  localStorage.removeItem("pokemon"); // <<< reset pour tirage aléatoire
   window.location.href = "pagesDraw.html";
 });

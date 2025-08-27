@@ -148,39 +148,33 @@ body {
 /* Brush size avec images */
 .brush-sizes {
   display: flex;
-  gap: 0.5rem;
-  align-items: center;
+  gap: 6px;
+  margin: 10px 0;
 }
 
-.brush-btn {
-  border: 2px solid #333;
+.brush {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
   border-radius: 50%;
-  background: #444;
-  cursor: pointer;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
 }
 
-.brush-btn.small {
-  width: 15px;
-  height: 15px;
+.brush.active {
+  border: 2px solid #000;
 }
 
-.brush-btn.medium {
-  width: 25px;
-  height: 25px;
+.dot {
+  display: block;
+  border-radius: 50%;
+  background: #000;
 }
 
-.brush-btn.large {
-  width: 35px;
-  height: 35px;
-}
-
-.brush-btn.active {
-  background: #ffcc00;
-  border-color: #000;
-}
 
 /* Submit */
 .submit-draw {
@@ -194,7 +188,7 @@ body {
 }
 
 #pokemon-original img {
-  width: 150px;
+  width: 200px;
   height: auto;
 }
 
@@ -226,7 +220,7 @@ body {
 }
 
 .result-card img {
-  width: 100%;
+  width: 50%;
   border-radius: 6px;
 }
 
