@@ -1,24 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Draw Round - PokeDraw</title>
+  <!-- IMPORTANT: ajuste ce chemin selon ta structure -->
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-      <!-- Header / Navbar -->
+  <!-- Navbar -->
   <header class="navbar">
     <div class="logo">PokeDraw</div>
     <nav>
       <ul class="nav-links">
-        <li><a href="#">Home</a></li>
+        <li><a href="../index.html">Home</a></li>
         <li><a href="#">How to play</a></li>
         <li><a href="#">About</a></li>
-        <li><a href="#" class="btn black">Join Game</a></li>
-        <li><a href="#" class="btn">Create Game</a></li>
       </ul>
     </nav>
   </header>
-  
+
+  <!-- Main Draw Section -->
+  <main class="draw-container">
+    <h2 id="draw-title">Draw</h2>
+    <p id="timer">Time left: <span id="time">60</span>s</p>
+
+    <div class="canvas-wrap">
+      <canvas id="drawing-canvas"></canvas>
+    </div>
+
+    <!-- Tools -->
+    <div class="tools">
+      <!-- Couleurs rapides -->
+      <div class="palette" id="palette">
+        <!-- couleurs courantes -->
+        <button class="swatch" data-color="#000000" style="background:#000000"></button>
+        <button class="swatch" data-color="#ffffff" style="background:#ffffff;border:1px solid #ddd"></button>
+        <button class="swatch" data-color="#ff3b30" style="background:#ff3b30"></button>
+        <button class="swatch" data-color="#ff9500" style="background:#ff9500"></button>
+        <button class="swatch" data-color="#ffcc00" style="background:#ffcc00"></button>
+        <button class="swatch" data-color="#34c759" style="background:#34c759"></button>
+        <button class="swatch" data-color="#5ac8fa" style="background:#5ac8fa"></button>
+        <button class="swatch" data-color="#007aff" style="background:#007aff"></button>
+        <button class="swatch" data-color="#af52de" style="background:#af52de"></button>
+
+        <!-- color picker -->
+        <label class="picker">
+          <input type="color" id="color-picker" value="#000000">
+        </label>
+      </div>
+
+      <!-- Tailles de pinceau façon Skribblio -->
+      <div class="brush-sizes" id="brush-sizes">
+        <!-- tailles (px) -->
+        <button class="brush" data-size="4"><span class="dot" style="width:4px;height:4px"></span></button>
+        <button class="brush" data-size="8"><span class="dot" style="width:8px;height:8px"></span></button>
+        <button class="brush" data-size="12"><span class="dot" style="width:12px;height:12px"></span></button>
+        <button class="brush" data-size="18"><span class="dot" style="width:18px;height:18px"></span></button>
+        <button class="brush" data-size="26"><span class="dot" style="width:26px;height:26px"></span></button>
+      </div>
+
+      <!-- Actions -->
+      <div class="tool-actions">
+        <button id="bucket-btn" class="btn">🪣 Remplir</button>
+        <button id="eraser-btn" class="btn">🩹 Effacer</button>
+        <button id="clear-btn" class="btn">🗑️ Poubelle</button>
+      </div>
+    </div>
+
+    <div class="submit-draw">
+      <button class="btn black" id="next-round-btn">Next Round</button>
+    </div>
+  </main>
+
+  <script src="../scripts/draw.js"></script>
 </body>
 </html>
