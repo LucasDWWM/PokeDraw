@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Game - PokeDraw</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
   <header class="navbar">
@@ -25,8 +25,18 @@
     <input type="password" id="roomPassword" placeholder="Mot de passe (optionnel)">
     <button id="createRoomBtn" class="btn">Créer</button>
 
-    <h2>Liste des salons</h2>
-    <div id="roomList"></div>
+    <h2>Liste des salons disponibles</h2>
+    <table class="room-table">
+      <thead>
+        <tr>
+          <th>Game ID</th>
+          <th>Joueurs</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="roomList"></tbody>
+    </table>
   </main>
 
   <script src="createGame.js"></script>
