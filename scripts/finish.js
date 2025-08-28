@@ -1,66 +1,66 @@
-// récupérer pokemon choisi
+const params = new URLSearchParams(window.location.search);
+const roomId = params.get("roomId");
+const playerName = localStorage.getItem("playerName") || "Toi";
+
 const pokemonId = localStorage.getItem("pokemonId");
 const pokemonNameFr = localStorage.getItem("pokemonNameFr");
 
-// fetch API pokedex
 fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`)
-  .then(res => res.json())
-  .then(data => {
-    // sprite avec fallback
-    document.getElementById("pokemon-img").src =
-      data.sprites.front_default ||
-      data.sprites.other["official-artwork"].front_default ||
-      "";
-
-    // nom FR depuis localStorage
+.then(res=>res.json())
+.then(data=>{
+    document.getElementById("pokemon-img").src = data.sprites.front_default || data.sprites.other["official-artwork"].front_default || "";
     document.getElementById("pokemon-name").textContent = pokemonNameFr;
-  });
+});
 
-// récupérer les dessins
-const userDrawings = document.getElementById("user-drawings");
-const lastDrawing = localStorage.getItem("lastDrawing");
+// récupérer les dessins depuis le serveur
+async function renderDrawings(){
+    const res = await fetch('rooms.php?action=list');
+    const rooms = await res.json();
+    const room = rooms.find(r=>r.id===roomId);
+    if(!room) return;
 
-// système de points
-let scores = JSON.parse(localStorage.getItem("scores")) || {};
-const currentPlayer = "Toi"; // ⚡ à remplacer par pseudo si multi
+    const userDrawings = document.getElementById("user-drawings");
+    userDrawings.innerHTML = "";
 
-if (!scores[currentPlayer]) scores[currentPlayer] = 0;
+    const scores = JSON.parse(localStorage.getItem("scores")) || {};
 
-if (lastDrawing) {
-  const card = document.createElement("div");
-  card.classList.add("result-card");
-  card.innerHTML = `
-    <h3>${currentPlayer} - Points: <span class="player-score">${scores[currentPlayer]}</span></h3>
-    <img src="${lastDrawing}" alt="ton dessin">
-    <div class="vote-buttons">
-      <button class="vote-btn up">👍</button>
-      <button class="vote-btn down">👎</button>
-    </div>
-  `;
-  userDrawings.appendChild(card);
+    for(const [player, drawing] of Object.entries(room.drawings)){
+        if(!scores[player]) scores[player]=0;
 
-  // gestion votes
-  const upBtn = card.querySelector(".vote-btn.up");
-  const downBtn = card.querySelector(".vote-btn.down");
-  const scoreDisplay = card.querySelector(".player-score");
+        const card = document.createElement("div");
+        card.classList.add("result-card");
+        card.innerHTML = `
+            <h3>${player} - Points: <span class="player-score">${scores[player]}</span></h3>
+            <img src="${drawing}" alt="dessin de ${player}">
+            <div class="vote-buttons">
+                <button class="vote-btn up">👍</button>
+                <button class="vote-btn down">👎</button>
+            </div>
+        `;
+        userDrawings.appendChild(card);
 
-  upBtn.addEventListener("click", () => {
-    scores[currentPlayer]++;
-    scoreDisplay.textContent = scores[currentPlayer];
-    localStorage.setItem("scores", JSON.stringify(scores));
-  });
+        const upBtn = card.querySelector(".vote-btn.up");
+        const downBtn = card.querySelector(".vote-btn.down");
+        const scoreDisplay = card.querySelector(".player-score");
 
-  downBtn.addEventListener("click", () => {
-    scores[currentPlayer]--;
-    scoreDisplay.textContent = scores[currentPlayer];
-    localStorage.setItem("scores", JSON.stringify(scores));
-  });
+        upBtn.addEventListener("click",()=>{
+            scores[player]++;
+            scoreDisplay.textContent = scores[player];
+            localStorage.setItem("scores",JSON.stringify(scores));
+        });
+
+        downBtn.addEventListener("click",()=>{
+            scores[player]--;
+            scoreDisplay.textContent = scores[player];
+            localStorage.setItem("scores",JSON.stringify(scores));
+        });
+    }
 }
+renderDrawings();
 
-// bouton next round
-document.getElementById("next-round-btn").addEventListener("click", () => {
-  localStorage.removeItem("lastDrawing");
-  localStorage.removeItem("pokemonId");
-  localStorage.removeItem("pokemonNameFr");
-  window.location.href = "pagesDraw.html";
+document.getElementById("next-round-btn").addEventListener("click",()=>{
+    localStorage.removeItem("lastDrawing");
+    localStorage.removeItem("pokemonId");
+    localStorage.removeItem("pokemonNameFr");
+    window.location.href="pagesDraw.html?roomId="+roomId;
 });
