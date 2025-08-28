@@ -11,7 +11,7 @@ const timeEl = document.getElementById("time");
 function resizeCanvas() {
   const wrap = document.querySelector(".canvas-wrap");
   const dpr = window.devicePixelRatio || 1;
-  const cssWidth = Math.min(800, wrap.clientWidth); // limite pour garder proportions
+  const cssWidth = Math.min(800, wrap.clientWidth);
   const cssHeight = Math.round(cssWidth * 0.66);
 
   canvas.style.width = cssWidth + "px";
@@ -34,29 +34,40 @@ let mode = "brush"; // brush | bucket | eraser
 
 // ---------- Pokémon + titre (tirage aléatoire) ----------
 async function getRandomPokemon() {
-  const max = 898; // nombre total de Pokémon (générations 1 → 8)
+  const max = 898;
   const randomId = Math.floor(Math.random() * max) + 1;
+
   const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
   const data = await res.json();
-  return data.name;
+
+  // Récup nom FR
+  const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${randomId}`);
+  const speciesData = await speciesRes.json();
+  const frName = speciesData.names.find(n => n.language.name === "fr").name;
+
+  return { id: randomId, enName: data.name, frName };
 }
 
 async function initPokemon() {
-  let pokemonName = localStorage.getItem("pokemon");
+  let pokemonId = localStorage.getItem("pokemonId");
+  let pokemonNameFr = localStorage.getItem("pokemonNameFr");
 
-  // si aucun Pokémon stocké → on en tire un nouveau
-  if (!pokemonName) {
-    pokemonName = await getRandomPokemon();
-    localStorage.setItem("pokemon", pokemonName);
+  if (!pokemonId || !pokemonNameFr) {
+    const poke = await getRandomPokemon();
+    pokemonId = poke.id;
+    pokemonNameFr = poke.frName;
+
+    localStorage.setItem("pokemonId", pokemonId);
+    localStorage.setItem("pokemonNameFr", pokemonNameFr);
   }
 
-  const isTurn = true; // si tu gères plusieurs joueurs, adapte ici
+  const isTurn = true; // à adapter pour multi
   localStorage.setItem("isTurn", isTurn ? "true" : "false");
 
   // affichage du titre
   titleEl.textContent = isTurn
-    ? `Draw ${capitalize(pokemonName)}`
-    : `Waiting… ${capitalize(pokemonName)}`;
+    ? `Dessine ${pokemonNameFr}`
+    : `En attente… ${pokemonNameFr}`;
 }
 
 initPokemon();
@@ -80,11 +91,9 @@ document.getElementById("brush-sizes").addEventListener("click", (e) => {
   if (!b) return;
   brushSize = parseInt(b.dataset.size, 10);
   mode = "brush";
-  // active visuelle
   document.querySelectorAll(".brush").forEach(btn => btn.classList.remove("active"));
   b.classList.add("active");
 });
-// set default active
 document.querySelector('.brush[data-size="8"]').classList.add("active");
 
 // ---------- actions ----------
@@ -110,13 +119,11 @@ document.getElementById("clear-btn").addEventListener("click", () => {
 })();
 
 // ---------- dessin (mouse) ----------
-// IMPORTANT: on démarre un nouveau "path" AU CLIC pour éviter le trait qui rejoint deux zones
 canvas.addEventListener("mousedown", (e) => {
   const x = e.offsetX;
   const y = e.offsetY;
 
   if (mode === "bucket") {
-    // bucket simple: remplir tout le canvas (à remplacer par un flood-fill si tu veux)
     const prev = ctx.fillStyle;
     ctx.fillStyle = brushColor;
     ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
@@ -137,7 +144,7 @@ canvas.addEventListener("mousemove", (e) => {
 
 canvas.addEventListener("mouseup", () => {
   drawing = false;
-  ctx.beginPath(); // très important pour éviter de relier le prochain clic au précédent
+  ctx.beginPath();
 });
 canvas.addEventListener("mouseleave", () => {
   drawing = false;
@@ -187,7 +194,7 @@ function drawTo(x, y, start = false) {
   ctx.lineJoin = "round";
 
   if (mode === "eraser") {
-    ctx.globalCompositeOperation = "destination-out"; // gomme
+    ctx.globalCompositeOperation = "destination-out";
     ctx.strokeStyle = "rgba(0,0,0,1)";
   } else {
     ctx.globalCompositeOperation = "source-over";
@@ -198,7 +205,6 @@ function drawTo(x, y, start = false) {
     ctx.lineTo(x, y);
     ctx.stroke();
   } else {
-    // premier point : tracer un point si l'utilisateur clique sans bouger
     ctx.lineTo(x + 0.01, y + 0.01);
     ctx.stroke();
   }
@@ -207,7 +213,7 @@ function drawTo(x, y, start = false) {
 }
 
 // ---------- timer ----------
-let timeLeft = 60; // durée du round (secondes)
+let timeLeft = 60;
 const timer = setInterval(() => {
   timeLeft--;
   timeEl.textContent = timeLeft;
@@ -219,10 +225,7 @@ const timer = setInterval(() => {
 
 // ---------- Fin du round ----------
 function finishRound() {
-  // sauvegarder le dessin en base64
   const drawingData = canvas.toDataURL("image/png");
   localStorage.setItem("lastDrawing", drawingData);
-
-  // on redirige vers la page de résultats
   window.location.href = "drawFinish.html";
 }

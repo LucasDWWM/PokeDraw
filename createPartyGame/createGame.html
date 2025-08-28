@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Game - PokeDraw</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">PokeDraw</div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="#">How to play</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="createGame.html" class="btn">Create Game</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="game-lobby">
+    <h2>Créer un salon</h2>
+    <input type="text" id="roomName" placeholder="Nom du salon">
+    <input type="password" id="roomPassword" placeholder="Mot de passe (optionnel)">
+    <button id="createRoomBtn" class="btn">Créer</button>
+
+    <h2>Liste des salons</h2>
+    <div id="roomList"></div>
+  </main>
+
+  <script src="createGame.js"></script>
+</body>
+</html>
