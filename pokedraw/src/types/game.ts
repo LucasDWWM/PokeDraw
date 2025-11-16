@@ -15,4 +15,5 @@ export interface Room {
   drawings?: Record<string, string>;
   currentRound?: number;
   currentPlayerIndex?: number; // 0 = premier joueur dans players[]
+  phase?: "drawing" | "results";
 }

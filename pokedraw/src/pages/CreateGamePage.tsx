@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Room } from "../types/game";
 
-const API_URL = "/PokeDraw/room.php"; // adapte le chemin si besoin
+const API_URL = "http://localhost:8000/room.php";
 
 const CreateGamePage = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -116,27 +116,34 @@ const CreateGamePage = () => {
         <table className="w-full text-sm">
           <thead className="border-b text-left text-neutral-500">
             <tr>
-              <th className="py-2">Game ID</th>
+              <th className="py-2">Game</th>
               <th className="py-2">Players</th>
               <th className="py-2">Status</th>
               <th className="py-2">Action</th>
             </tr>
           </thead>
+
           <tbody>
             {rooms.map((room) => {
               const playersCount = `${room.players.length}/4`;
               const label =
                 room.status === "waiting"
-                  ? "Waiting"
+                  ? "En attente"
                   : room.status === "in-progress"
-                    ? "In progress"
-                    : "Full";
+                    ? "En cours"
+                    : "Complet";
 
               const canJoin = room.status !== "full";
 
               return (
                 <tr key={room.id} className="border-b last:border-0">
-                  <td className="py-2">{room.id}</td>
+                  <td className="py-2">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{room.name}</span>
+                      <span className="text-xs text-neutral-400">ID: {room.id}</span>
+                    </div>
+                  </td>
+
                   <td className="py-2">{playersCount}</td>
                   <td className="py-2">{label}</td>
                   <td className="py-2">
@@ -144,8 +151,8 @@ const CreateGamePage = () => {
                       disabled={!canJoin}
                       onClick={() => handleJoin(room)}
                       className={`px-3 py-1 rounded-full text-xs border ${canJoin
-                          ? "border-neutral-900 hover:bg-neutral-900 hover:text-white"
-                          : "border-neutral-300 text-neutral-400 cursor-not-allowed"
+                        ? "border-neutral-900 hover:bg-neutral-900 hover:text-white"
+                        : "border-neutral-300 text-neutral-400 cursor-not-allowed"
                         }`}
                     >
                       {canJoin ? "Join" : "Full"}

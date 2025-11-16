@@ -10,7 +10,7 @@ const HomePage = () => {
 
       <div className="flex flex-col sm:flex-row gap-4">
         <Link
-          to="/draw/demo" // on remplacera "demo" par un vrai roomId quand on aura créé/choisi la partie
+          to="/create"
           className="px-6 py-3 rounded-full border border-neutral-900 text-neutral-900 text-sm font-medium hover:bg-neutral-900 hover:text-white transition"
         >
           Join Game

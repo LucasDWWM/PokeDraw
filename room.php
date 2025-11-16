@@ -1,5 +1,14 @@
 <?php
+// CORS pour pouvoir appeler l'API depuis Vite (5173)
+header('Access-Control-Allow-Origin: http://localhost:5173');
+header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // réponse vide pour les preflight
+    exit;
+}
 
 // --- fichier de stockage simple ---
 define('ROOMS_FILE', 'rooms.json');
@@ -65,6 +74,7 @@ switch ($action) {
             'drawings'        => [],
             'currentRound'    => 1,
             'currentPlayerIndex' => 0,
+            'phase'              => 'drawing', 
         ];
 
         writeRooms($rooms);
@@ -111,6 +121,7 @@ switch ($action) {
                 if (!isset($room['currentRound']))        $room['currentRound'] = 1;
                 if (!isset($room['currentPlayerIndex'])) $room['currentPlayerIndex'] = 0;
                 if (!isset($room['drawings']))           $room['drawings'] = [];
+                if (!isset($room['phase'])) $room['phase'] = 'drawing';
 
                 writeRooms($rooms);
                 echo json_encode($room);
@@ -142,11 +153,14 @@ switch ($action) {
 
     // Enregistrer un dessin
     case 'submitDrawing':
-        $roomId = $_POST['roomId'] ?? '';
-        $player = $_POST['player'] ?? 'Guest';
+        $roomId  = $_POST['roomId'] ?? '';
+        $player  = $_POST['player'] ?? 'Guest';
         $drawing = $_POST['drawing'] ?? '';
 
-        if(!$roomId || !$drawing){ echo json_encode(['error'=>'Données manquantes']); exit; }
+        if (!$roomId || !$drawing) {
+            echo json_encode(['error' => 'Données manquantes']);
+            exit;
+        }
 
         $rooms = readRooms();
         foreach ($rooms as &$room) {
@@ -154,13 +168,40 @@ switch ($action) {
                 if (!isset($room['drawings']) || !is_array($room['drawings'])) {
                     $room['drawings'] = [];
                 }
+
+                // on enregistre le dessin pour ce joueur
                 $room['drawings'][$player] = $drawing;
+
+                $playersCount  = isset($room['players']) ? count($room['players']) : 0;
+                $drawingsCount = count($room['drawings']);
+
+                // trouver l'index du joueur qui vient de dessiner
+                $playerIndex = 0;
+                if ($playersCount > 0) {
+                    foreach ($room['players'] as $idx => $p) {
+                        if ($p['name'] === $player) {
+                            $playerIndex = $idx;
+                            break;
+                        }
+                    }
+                }
+
+                if ($playersCount > 0 && $drawingsCount >= $playersCount) {
+                    // tout le monde a dessiné : on passe en phase "results"
+                    $room['phase'] = 'results';
+                } else {
+                    // sinon on passe au joueur suivant
+                    if ($playersCount > 0) {
+                        $room['currentPlayerIndex'] = ($playerIndex + 1) % $playersCount;
+                    }
+                }
+
                 writeRooms($rooms);
-                echo json_encode(['success'=>true]);
+                echo json_encode(['success' => true]);
                 exit;
             }
         }
-        echo json_encode(['error'=>'Salon introuvable']);
+        echo json_encode(['error' => 'Salon introuvable']);
         break;
 
     // Passer à la manche suivante
@@ -193,6 +234,53 @@ switch ($action) {
             }
         }
         echo json_encode(['error'=>'Salon introuvable']);
+        break;
+
+        // Quitter un salon
+        case 'leave':
+        $roomId = $_POST['roomId'] ?? '';
+        $player = $_POST['player'] ?? 'Guest';
+
+        if (!$roomId) {
+            echo json_encode(['error' => 'roomId requis']);
+            exit;
+        }
+
+        $rooms = readRooms();
+        $roomIndex = null;
+
+        foreach ($rooms as $index => &$room) {
+            if ($room['id'] === $roomId) {
+                $roomIndex = $index;
+
+                // filtrer les joueurs
+                $room['players'] = array_values(array_filter(
+                    $room['players'],
+                    fn($p) => $p['name'] !== $player
+                ));
+
+                $count = count($room['players']);
+
+                if ($count === 0) {
+                    // plus personne -> on supprime la room
+                    unset($rooms[$index]);
+                    $rooms = array_values($rooms);
+                } else {
+                    // on remet le statut à jour
+                    if ($count < 4 && $room['status'] === 'full') {
+                        $room['status'] = $count === 1 ? 'waiting' : 'in-progress';
+                    } else if ($count === 1) {
+                        $room['status'] = 'waiting';
+                    }
+                }
+
+                writeRooms($rooms);
+                echo json_encode(['success' => true]);
+                exit;
+            }
+        }
+
+        echo json_encode(['error' => 'Salon introuvable']);
         break;
 
     default:

@@ -8,16 +8,31 @@ interface Props {
   durationSeconds: number;
 }
 
+const COLOR_SWATCHES = [
+  "#000000",
+  "#ffffff",
+  "#ff3b30",
+  "#ff9500",
+  "#ffcc00",
+  "#34c759",
+  "#5ac8fa",
+  "#007aff",
+  "#af52de",
+];
+
+const BRUSH_SIZES = [4, 8, 12, 18, 26];
+
 const CanvasDrawing = ({ onFinish, durationSeconds }: Props) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+
   const [timeLeft, setTimeLeft] = useState(durationSeconds);
   const [isDrawing, setIsDrawing] = useState(false);
   const [brushSize, setBrushSize] = useState(8);
   const [brushColor, setBrushColor] = useState("#000000");
   const [tool, setTool] = useState<Tool>("pen");
 
-  // Resize comme dans ton script
+  // Resize + fond blanc
   useEffect(() => {
     const resize = () => {
       const wrap = wrapRef.current;
@@ -28,7 +43,6 @@ const CanvasDrawing = ({ onFinish, durationSeconds }: Props) => {
       canvas.width = Math.floor(rect.width);
       canvas.height = Math.floor(rect.height);
 
-      // fond blanc (sinon transparent)
       const ctx = canvas.getContext("2d");
       if (ctx) {
         ctx.fillStyle = "#ffffff";
@@ -49,8 +63,8 @@ const CanvasDrawing = ({ onFinish, durationSeconds }: Props) => {
       onFinish(canvas.toDataURL("image/png"));
       return;
     }
-    const id = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-    return () => clearInterval(id);
+    const id = window.setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => window.clearInterval(id);
   }, [timeLeft, onFinish]);
 
   const getCtx = () => {
@@ -88,10 +102,10 @@ const CanvasDrawing = ({ onFinish, durationSeconds }: Props) => {
     const ctx = getCtx();
     if (!ctx) return;
     const { x, y } = pointerPos(e);
-    ctx.lineTo(x, y);
 
     const color = tool === "eraser" ? "#ffffff" : brushColor;
 
+    ctx.lineTo(x, y);
     ctx.strokeStyle = color;
     ctx.lineWidth = brushSize;
     ctx.lineCap = "round";
@@ -117,98 +131,100 @@ const CanvasDrawing = ({ onFinish, durationSeconds }: Props) => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
 
-  const quickSize = (size: number) => {
-    setBrushSize(size);
-  };
-
   return (
     <div className="space-y-4">
-      {/* Top bar : timer + tools */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm">
-        <span className="text-neutral-700">
+      {/* Top bar : timer */}
+      <div className="flex items-center justify-between text-sm">
+        <p className="text-neutral-700">
           Time left: <span className="font-semibold">{timeLeft}s</span>
-        </span>
+        </p>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Couleur */}
-          <label className="flex items-center gap-2">
+      {/* Tools */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between text-sm">
+        {/* Palette de couleurs */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {COLOR_SWATCHES.map((color) => (
+            <button
+              key={color}
+              type="button"
+              onClick={() => {
+                setBrushColor(color);
+                setTool("pen");
+              }}
+              className={`h-7 w-7 rounded-full border ${color === "#ffffff" ? "border-neutral-300" : "border-transparent"
+                } ${brushColor === color && tool === "pen" ? "ring-2 ring-neutral-900" : ""}`}
+              style={{ backgroundColor: color }}
+            />
+          ))}
+          <label className="ml-2 flex items-center gap-2">
             <span className="text-xs uppercase tracking-wide text-neutral-500">
-              Color
+              Custom
             </span>
             <input
               type="color"
               value={brushColor}
-              onChange={(e) => setBrushColor(e.target.value)}
+              onChange={(e) => {
+                setBrushColor(e.target.value);
+                setTool("pen");
+              }}
               className="h-7 w-7 rounded-full border border-neutral-300 p-0"
             />
           </label>
+        </div>
 
-          {/* Tailles rapides */}
-          <div className="flex items-center gap-1">
+        {/* Tailles de pinceau */}
+        <div className="flex items-center gap-2">
+          {BRUSH_SIZES.map((size) => (
             <button
-              onClick={() => quickSize(4)}
-              className={`h-6 w-6 rounded-full border ${
-                brushSize === 4 ? "bg-neutral-900 border-neutral-900" : ""
-              }`}
-            />
-            <button
-              onClick={() => quickSize(8)}
-              className={`h-7 w-7 rounded-full border ${
-                brushSize === 8 ? "bg-neutral-900 border-neutral-900" : ""
-              }`}
-            />
-            <button
-              onClick={() => quickSize(14)}
-              className={`h-8 w-8 rounded-full border ${
-                brushSize === 14 ? "bg-neutral-900 border-neutral-900" : ""
-              }`}
-            />
-          </div>
+              key={size}
+              type="button"
+              onClick={() => setBrushSize(size)}
+              className={`flex items-center justify-center rounded-full border h-8 w-8 bg-white ${brushSize === size ? "bg-neutral-900 border-neutral-900" : ""
+                }`}
+            >
+              <span
+                className={`rounded-full ${brushSize === size ? "bg-white" : "bg-neutral-900"
+                  }`}
+                style={{ width: size / 2, height: size / 2 }}
+              />
+            </button>
+          ))}
+        </div>
 
-          {/* Tools */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setTool("pen")}
-              className={`px-3 py-1 rounded-full border text-xs ${
-                tool === "pen"
-                  ? "bg-neutral-900 text-white border-neutral-900"
-                  : "bg-white"
-              }`}
-            >
-              Pen
-            </button>
-            <button
-              onClick={() => setTool("eraser")}
-              className={`px-3 py-1 rounded-full border text-xs ${
-                tool === "eraser"
-                  ? "bg-neutral-900 text-white border-neutral-900"
-                  : "bg-white"
-              }`}
-            >
-              Eraser
-            </button>
-            <button
-              onClick={() => setTool("bucket")}
-              className={`px-3 py-1 rounded-full border text-xs ${
-                tool === "bucket"
-                  ? "bg-neutral-900 text-white border-neutral-900"
-                  : "bg-white"
-              }`}
-            >
-              Bucket
-            </button>
-          </div>
-
+        {/* Outils */}
+        <div className="flex items-center gap-2">
           <button
-            onClick={clearCanvas}
-            className="px-3 py-1 rounded-full border text-xs"
+            type="button"
+            onClick={() => setTool("bucket")}
+            className={`px-3 py-1 rounded-full border text-xs flex items-center gap-1 ${tool === "bucket"
+                ? "bg-neutral-900 text-white border-neutral-900"
+                : "bg-white"
+              }`}
           >
-            Clear
+            🪣 Bucket
+          </button>
+          <button
+            type="button"
+            onClick={() => setTool("eraser")}
+            className={`px-3 py-1 rounded-full border text-xs flex items-center gap-1 ${tool === "eraser"
+                ? "bg-neutral-900 text-white border-neutral-900"
+                : "bg-white"
+              }`}
+          >
+            🩹 Eraser
+          </button>
+          <button
+            type="button"
+            onClick={clearCanvas}
+            className="px-3 py-1 rounded-full border text-xs flex items-center gap-1 bg-white"
+          >
+            🗑️ Clear
           </button>
         </div>
       </div>
 
-      {/* Zone de dessin */}
+      {/* Canvas */}
       <div
         ref={wrapRef}
         className="w-full h-[320px] sm:h-[420px] bg-white rounded-2xl shadow-inner overflow-hidden"

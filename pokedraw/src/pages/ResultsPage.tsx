@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import type { Room } from "../types/game";
 
-const API_URL = "/PokeDraw/room.php";
+const API_URL = "http://localhost:8000/room.php";
 
 interface DrawingEntry {
   player: string;
@@ -90,28 +90,52 @@ const ResultsPage = () => {
 
   const handleNextRound = async () => {
     if (!roomId) return;
-  
+
     try {
       const formData = new URLSearchParams();
       formData.append("roomId", roomId);
-  
+
       await fetch(`${API_URL}?action=nextRound`, {
         method: "POST",
         body: formData,
       });
-      
-  
+
+
       localStorage.removeItem("lastDrawing");
       localStorage.removeItem("pokemonId");
       localStorage.removeItem("pokemonNameFr");
-  
+
       navigate(`/draw/${roomId}`);
     } catch (err) {
       console.error(err);
       alert("Erreur lors du passage à la manche suivante.");
     }
-  };  
+  };
+  const handleLeave = async () => {
+    if (!roomId) return;
 
+    try {
+      const playerName = localStorage.getItem("playerName") || "Guest";
+
+      const formData = new URLSearchParams();
+      formData.append("roomId", roomId);
+      formData.append("player", playerName);
+
+      await fetch(`${API_URL}?action=leave`, {
+        method: "POST",
+        body: formData,
+      });
+
+      localStorage.removeItem("lastDrawing");
+      localStorage.removeItem("pokemonId");
+      localStorage.removeItem("pokemonNameFr");
+
+      navigate(`/`);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la sortie de la partie.");
+    }
+  };
   if (!roomId) {
     return <p className="mt-10 text-center">Room id manquant.</p>;
   }
@@ -197,6 +221,13 @@ const ResultsPage = () => {
           className="px-6 py-3 rounded-full bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-800"
         >
           Next Round
+        </button>
+        <button
+          type="button"
+          onClick={handleLeave}
+          className="text-xs px-3 py-1 rounded-full border border-neutral-300 text-neutral-500 hover:border-neutral-900 hover:text-neutral-900"
+        >
+          Leave game
         </button>
       </div>
     </div>

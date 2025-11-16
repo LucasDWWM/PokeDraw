@@ -20,16 +20,33 @@ const Navbar = () => {
                 Home
               </NavLink>
             </li>
+            <NavLink
+              to="/how-to-play"
+              className={({ isActive }) =>
+                `hover:underline ${isActive ? "font-semibold" : ""}`
+              }
+            >
+              How to play
+            </NavLink>
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `hover:underline ${isActive ? "font-semibold" : ""}`
+              }
+            >
+              About
+            </NavLink>
             <li>
-              <a href="#" className="hover:underline">
-                How to play
-              </a>
+              <NavLink
+                to="/pokedex"
+                className={({ isActive }) =>
+                  `hover:underline ${isActive ? "font-semibold" : ""}`
+                }
+              >
+                Pokedex
+              </NavLink>
             </li>
-            <li>
-              <a href="#" className="hover:underline">
-                About
-              </a>
-            </li>
+
           </ul>
         </nav>
       </div>
